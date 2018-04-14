@@ -11,4 +11,7 @@ router.post('/', (req, res) => {
     Topics.emit('createTopic', req, res);
 });
 
+router.put('/:id', (req, res) => {
+    Topics.emit('updateTopic', req, res);
+})
 module.exports = router;

@@ -44,6 +44,21 @@ const DataBase = () => {
             });
     });
 
+    databaseEmitter.on('updateTopic', (emitter, updateTopic, res) => {
+        GetClient.getConnection()
+            .then(client => {
+                const sql = 'UPDATE topics SET name=$1, description=$2 WHERE id=$3 RETURNING *';
+                const values = [updateTopic.name, updateTopic.description, updateTopic.id]
+                return client.query(sql, values);
+            })
+            .then(topics => {
+                emitter.emit('done', topics.rows[0], res);
+            })
+            .catch(err => {
+                emitter.emit('error', err, res);
+            });
+    });
+
 
 
     return databaseEmitter;

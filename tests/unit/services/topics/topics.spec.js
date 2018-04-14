@@ -58,6 +58,33 @@ describe('Handles Get Topic Requests', () => {
 
         });
 
+        it('should emit DB event to update a Topic', (done) => {
+            req = {
+                body: {
+                    name: 'REACT',
+                    description: 'A Short Description'
+                },
+                params: {
+                    id: 1
+                }
+            };
+            res = {
+                status: (status) => {
+                    expect(status).to.equal(200);
+                },
+                json: (response) => {
+                    //expect(GetAllTopicsStub.called).to.be.true;
+                    expect(response).to.be.an('object');
+                    done();
+                }
+            };
+            GetAllTopicsStub.withArgs('updateTopic').callsFake((emitter, response) => {
+                Topics.emit('done', {}, res);
+            });
+            Topics.emit('updateTopic', req, res);
+
+        });
+
     });
 
     describe('Done Handler', () => {

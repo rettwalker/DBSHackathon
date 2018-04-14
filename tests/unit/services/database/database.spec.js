@@ -106,4 +106,32 @@ describe('Handles DB Requests', () => {
             Database.emit('createNewTopic', emitter, newTopic, res);
         });
     });
+
+    describe('Update A Topic', () => {
+        it('should Update a Topic', (done) => {
+            let updateTopic = { id: 1, name: 'brianc', description: 'A Short Description New' };
+            MockClient.query.resolves({
+                rows: [updateTopic]
+            });
+            emitter.on('done', function (updatedTopic, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('UPDATE topics SET name=$1, description=$2 WHERE id=$3 RETURNING *', [updateTopic.name, updateTopic.description, updateTopic.id])).to.be.true;
+                expect(updatedTopic).to.deep.equal(updateTopic);
+                done();
+            });
+            Database.emit('updateTopic', emitter, updateTopic, res);
+        });
+
+        it('should fail to update the topic', (done) => {
+            let updateTopic = { id: 1, name: 'brianc', description: 'A Short Description New' };
+            MockClient.query.rejects({ message: 'Error' });
+            emitter.on('error', function (updatedTopic, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('UPDATE topics SET name=$1, description=$2 WHERE id=$3 RETURNING *', [updateTopic.name, updateTopic.description, updateTopic.id])).to.be.true;
+                expect(updatedTopic).to.deep.equal({ message: 'Error' });
+                done();
+            });
+            Database.emit('updateTopic', emitter, updateTopic, res);
+        });
+    });
 });

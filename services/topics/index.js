@@ -16,6 +16,15 @@ const Topics = () => {
         Database.emit('createNewTopic', this, newTopic, res);
     });
 
+    topicEmitter.on('updateTopic', function (req, res) {
+        let newTopic = {
+            id: req.params.id,
+            name: req.body.name,
+            description: req.body.description
+        }
+        Database.emit('updateTopic', this, newTopic, res);
+    });
+
     topicEmitter.on('done', function (topics, res) {
         res.status(200);
         res.json(topics);
@@ -23,7 +32,6 @@ const Topics = () => {
     });
 
     topicEmitter.on('error', function (reason, res) {
-        console.error(reason.stack);
         res.status(400);
         res.json(reason);
         return;
