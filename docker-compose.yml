@@ -1,0 +1,22 @@
+version: '3'
+services:
+  db:
+    image: "postgres"
+    container_name: dbshackathon_db
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_USER=admin
+    volumes:
+      - ./docker/postgres/postgres-data:/var/lib/postgresql/data
+  server:
+    build: .
+    container_name: dbshackathon_server
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://admin:admin@db/dbshackathon
+    volumes:
+    - .:/usr/src/app
+    command: ["./wait-for-it.sh", "db", "--", "npm", "start"]

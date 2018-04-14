@@ -1,14 +1,52 @@
 const EventEmitter = require('events'),
-    pg = require('pg');
+    GetClient = require('./getClient');
 
 const DataBase = () => {
-    const topicEmitter = Object.assign({}, EventEmitter.prototype);
+    const databaseEmitter = Object.assign({}, EventEmitter.prototype);
 
-    topicEmitter.on('lookUpTopics', (emitter, req, res) => {
-        emitter.emit('done', req, res, []);
+    databaseEmitter.on('lookUpTopics', (emitter, res) => {
+        GetClient.getConnection()
+            .then(client => {
+                const sql = 'SELECT * FROM topics';
+                return client.query(sql);
+            })
+            .then(topics => {
+                emitter.emit('done', topics.rows, res);
+            })
+            .catch(err => {
+                emitter.emit('error', err, res);
+            });
+
     });
 
-    return topicEmitter;
+    databaseEmitter.on('createNewTopic', (emitter, newTopic, res) => {
+        let ClientInstance = null;
+        GetClient.getConnection()
+            .then(client => {
+                ClientInstance = client;
+                const sql = 'SELECT * FROM topics WHERE LOWER(name)=LOWER($1)';
+                const values = [newTopic.name]
+                return ClientInstance.query(sql, values)
+            })
+            .then(res => {
+                if (res.rows.length !== 0) {
+                    return Promise.reject({ message: 'Topic Already Exists' });
+                }
+                const sql = 'INSERT INTO topics(name, description) VALUES($1, $2) RETURNING *';
+                const values = [newTopic.name, newTopic.description]
+                return ClientInstance.query(sql, values);
+            })
+            .then(topics => {
+                emitter.emit('done', topics.rows[0], res);
+            })
+            .catch(err => {
+                emitter.emit('error', err, res);
+            });
+    });
+
+
+
+    return databaseEmitter;
 };
 
 module.exports = DataBase();
