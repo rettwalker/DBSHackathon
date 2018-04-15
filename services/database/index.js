@@ -19,6 +19,36 @@ const DataBase = () => {
 
     });
 
+    databaseEmitter.on('getTopic', (emitter, topicId, res) => {
+        let ClientInstance = null;
+        let TopicAndComments = null;
+        GetClient.getConnection()
+            .then(client => {
+                ClientInstance = client;
+                const sql = 'SELECT * FROM topics WHERE id=$1';
+                const value = [topicId];
+                return ClientInstance.query(sql, value);
+            })
+            .then(topic => {
+                if (topic.rows.length === 0) {
+                    return Promise.reject({ message: 'Topic Not Found' });
+                }
+
+                TopicAndComments = topic.rows[0];
+                const sql = 'SELECT * FROM comments WHERE topic_id=$1';
+                const value = [topicId];
+                return ClientInstance.query(sql, value);
+            })
+            .then(comments => {
+                TopicAndComments.comments = comments.rows;
+                emitter.emit('done', TopicAndComments, res);
+            })
+            .catch(err => {
+                emitter.emit('error', err, res);
+            });
+
+    });
+
     databaseEmitter.on('createNewTopic', (emitter, newTopic, res) => {
         let ClientInstance = null;
         GetClient.getConnection()

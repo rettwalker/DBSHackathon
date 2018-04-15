@@ -50,6 +50,65 @@ describe('Handles DB Requests', () => {
 
     });
 
+    describe('Get a Single Topic and its Comments', () => {
+        it('should return the topic and its comments back to the object that emitted the request', (done) => {
+            let topicId = 1;
+            let response = {
+                id: 1,
+                name: 'EmberJS',
+                comments: [
+                    { id: 1, topic_id: 1, user_id: 1, message: 'A Witty Comment' }
+                ]
+            };
+            MockClient.query.onCall(0).resolves({
+                rows: [{ id: 1, name: 'EmberJS' }]
+            });
+
+            MockClient.query.onCall(1).resolves({
+                rows: [{ id: 1, topic_id: 1, user_id: 1, message: 'A Witty Comment' }]
+            });
+            emitter.on('done', function (topicAndComment, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.firstCall.calledWith('SELECT * FROM topics WHERE id=$1', [topicId])).to.be.true;
+                expect(MockClient.query.secondCall.calledWith('SELECT * FROM comments WHERE topic_id=$1', [topicId])).to.be.true;
+                expect(topicAndComment).to.deep.equal(response);
+                done();
+            });
+            Database.emit('getTopic', emitter, topicId, res);
+        });
+
+        it('should return return error when Topic is Not Found ', (done) => {
+            let topicId = 1;
+            MockClient.query.resolves({
+                rows: []
+            });
+            emitter.on('error', function (reason, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.firstCall.calledWith('SELECT * FROM topics WHERE id=$1', [topicId])).to.be.true;
+                expect(reason).to.deep.equal({ message: 'Topic Not Found' });
+                done();
+            });
+            Database.emit('getTopic', emitter, topicId, res);
+        });
+
+        it('should return return error when getting Topic or Comments', (done) => {
+            let topicId = 1;
+            MockClient.query.rejects({
+                message: 'Error'
+            });
+            emitter.on('error', function (reason, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.firstCall.calledWith('SELECT * FROM topics WHERE id=$1', [topicId])).to.be.true;
+                expect(reason).to.deep.equal({
+                    message: 'Error'
+                });
+                done();
+            });
+            Database.emit('getTopic', emitter, topicId, res);
+        });
+
+    });
+
     describe('Create New Topics', () => {
         it('should return the topics back to the object that emitted the request', (done) => {
             let newTopic = { name: 'brianc', description: 'A Short Description' };

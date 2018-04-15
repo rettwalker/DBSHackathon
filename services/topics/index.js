@@ -8,6 +8,10 @@ const Topics = () => {
         Database.emit('lookUpTopics', this, res);
     });
 
+    topicEmitter.on('getTopic', function (req, res) {
+        Database.emit('getTopic', this, req.params.id, res);
+    });
+
     topicEmitter.on('createTopic', function (req, res) {
         let newTopic = {
             name: req.body.name,

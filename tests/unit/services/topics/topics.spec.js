@@ -67,9 +67,25 @@ describe('Handles Get Topic Requests', () => {
                 done();
             });
             Topics.emit('updateTopic', req, res);
-
         });
 
+        it('should emit DB event to get a topic and its comments', (done) => {
+            req = {
+                body: {
+                    name: 'REACT',
+                    description: 'A Short Description'
+                },
+                params: {
+                    id: 1
+                }
+            };
+            res = {};
+            DatabaseMock.withArgs('getTopic').callsFake((emitter, response) => {
+                expect(DatabaseMock.calledWith('getTopic', sinon.match.object, req.params.id, res)).to.be.true;
+                done();
+            });
+            Topics.emit('getTopic', req, res);
+        });
     });
 
     describe('Done Handler', () => {
