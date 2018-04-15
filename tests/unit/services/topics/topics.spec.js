@@ -6,59 +6,52 @@ const Topics = require('../../../../services/topics'),
 
 
 describe('Handles Get Topic Requests', () => {
-    let req, res, DBService, GetAllTopicsStub;
+    let req, res, DBService, DatabaseMock;
     beforeEach(() => {
-        GetAllTopicsStub = sinon.stub(Database, 'emit');
+        DatabaseMock = sinon.stub(Database, 'emit');
     });
 
     afterEach(() => {
-        GetAllTopicsStub.restore();
+        DatabaseMock.restore();
     });
 
     describe('Different Topic Events', () => {
         it('should emit DB event to get all topics', (done) => {
-            res = {
-                status: (status) => {
-                    expect(status).to.equal(200);
-                },
-                json: (response) => {
-                    //expect(GetAllTopicsStub.called).to.be.true;
-                    expect(response).to.be.an('array');
-                    done();
-                }
-            };
-            GetAllTopicsStub.withArgs('lookUpTopics').callsFake((emitter, response) => {
-                Topics.emit('done', [], res);
+            res = {};
+            DatabaseMock.withArgs('lookUpTopics').callsFake((emitter, response) => {
+                expect(DatabaseMock.calledWith('lookUpTopics', sinon.match.object, res)).to.be.true;
+                done();
             });
             Topics.emit('getTopics', req, res);
 
         });
 
         it('should emit DB event to create a new Topic', (done) => {
+            let newTopic = {
+                name: 'REACT',
+                description: 'A Short Description'
+            };
             req = {
                 body: {
                     name: 'REACT',
                     description: 'A Short Description'
                 }
             };
-            res = {
-                status: (status) => {
-                    expect(status).to.equal(200);
-                },
-                json: (response) => {
-                    //expect(GetAllTopicsStub.called).to.be.true;
-                    expect(response).to.be.an('object');
-                    done();
-                }
-            };
-            GetAllTopicsStub.withArgs('createNewTopic').callsFake((emitter, response) => {
-                Topics.emit('done', {}, res);
+            res = {};
+            DatabaseMock.withArgs('createNewTopic').callsFake((emitter, response) => {
+                expect(DatabaseMock.calledWith('createNewTopic', sinon.match.object, newTopic, res)).to.be.true;
+                done();
             });
             Topics.emit('createTopic', req, res);
 
         });
 
         it('should emit DB event to update a Topic', (done) => {
+            let updateTopic = {
+                id: 1,
+                name: 'REACT',
+                description: 'A Short Description'
+            };
             req = {
                 body: {
                     name: 'REACT',
@@ -68,18 +61,10 @@ describe('Handles Get Topic Requests', () => {
                     id: 1
                 }
             };
-            res = {
-                status: (status) => {
-                    expect(status).to.equal(200);
-                },
-                json: (response) => {
-                    //expect(GetAllTopicsStub.called).to.be.true;
-                    expect(response).to.be.an('object');
-                    done();
-                }
-            };
-            GetAllTopicsStub.withArgs('updateTopic').callsFake((emitter, response) => {
-                Topics.emit('done', {}, res);
+            res = {};
+            DatabaseMock.withArgs('updateTopic').callsFake((emitter, response) => {
+                expect(DatabaseMock.calledWith('updateTopic', sinon.match.object, updateTopic, res)).to.be.true;
+                done();
             });
             Topics.emit('updateTopic', req, res);
 
@@ -116,8 +101,6 @@ describe('Handles Get Topic Requests', () => {
                     done();
                 }
             };
-            Topics.req = {};
-            Topics.res = res;
             Topics.emit('error', errMsg, res);
         });
     });

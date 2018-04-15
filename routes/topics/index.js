@@ -13,5 +13,5 @@ router.post('/', (req, res) => {
 
 router.put('/:id', (req, res) => {
     Topics.emit('updateTopic', req, res);
-})
+});
 module.exports = router;
