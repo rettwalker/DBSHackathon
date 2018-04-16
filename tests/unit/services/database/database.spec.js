@@ -416,7 +416,7 @@ describe('Handles DB Requests', () => {
             Database.emit('deleteComment', emitter, { id: 1, user_id: 1 }, res);
         });
 
-        it('should fail to update a comment', (done) => {
+        it('should fail to delete a comment', (done) => {
             let editComment = {
                 id: 1,
                 topic_id: 1,
@@ -435,6 +435,48 @@ describe('Handles DB Requests', () => {
                 done();
             });
             Database.emit('deleteComment', emitter, { id: 1, user_id: 1 }, res);
+        });
+    });
+
+    describe('Get a Users Info', () => {
+        it('should get a users info', (done) => {
+            let userInfo = { id: 1, email: 'EMAIL@address.com', first_name: 'BOB', last_name: 'BOBBY' };
+            MockClient.query.resolves({
+                rows: [userInfo]
+            });
+            emitter.on('done', function (info, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('SELECT id, email, first_name, last_name FROM users WHERE id=$1', [userInfo.id])).to.be.true;
+                expect(info).to.deep.equal(userInfo);
+                done();
+            });
+            Database.emit('getUserInfo', emitter, userInfo.id, res);
+        });
+
+        it('should respond with error if no user info returned', (done) => {
+            let userInfo = { id: 1, email: 'EMAIL@address.com', first_name: 'BOB', last_name: 'BOBBY' };
+            MockClient.query.resolves({
+                rows: []
+            });
+            emitter.on('error', function (error, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('SELECT id, email, first_name, last_name FROM users WHERE id=$1', [userInfo.id])).to.be.true;
+                expect(error).to.deep.equal({ message: 'User Not Found' });
+                done();
+            });
+            Database.emit('getUserInfo', emitter, userInfo.id, res);
+        });
+
+        it('should fail to get user info', (done) => {
+            let userInfo = { id: 1, email: 'EMAIL@address.com', first_name: 'BOB', last_name: 'BOBBY' };
+            MockClient.query.rejects({ message: 'Error' });
+            emitter.on('error', function (error, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('SELECT id, email, first_name, last_name FROM users WHERE id=$1', [userInfo.id])).to.be.true;
+                expect(error).to.deep.equal({ message: 'Error' });
+                done();
+            });
+            Database.emit('getUserInfo', emitter, userInfo.id, res);
         });
     });
 });
