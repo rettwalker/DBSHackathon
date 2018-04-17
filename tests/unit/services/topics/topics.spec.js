@@ -1,5 +1,5 @@
 const Topics = require('../../../../services/topics'),
-    Database = require('../../../../services/database'),
+    Database = require('../../../../services/database/topics'),
     chai = require('chai'),
     sinon = require('sinon'),
     expect = chai.expect;

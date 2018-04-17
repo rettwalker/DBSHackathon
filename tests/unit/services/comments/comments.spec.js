@@ -1,5 +1,5 @@
 const Comments = require('../../../../services/comments'),
-    Database = require('../../../../services/database'),
+    Database = require('../../../../services/database/comments'),
     chai = require('chai'),
     sinon = require('sinon'),
     expect = chai.expect;

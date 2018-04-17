@@ -1,5 +1,5 @@
 const EventEmitter = require('events'),
-    Database = require('../database');
+    Database = require('../database/users');
 
 const Users = () => {
     const userEmitter = Object.assign({}, EventEmitter.prototype);

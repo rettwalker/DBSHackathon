@@ -4,10 +4,11 @@ services:
     image: "postgres"
     container_name: dbshackathon_db
     environment:
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=securepassword
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=dbshackathon
     volumes:
-      - ./docker/postgres/postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d/
   server:
     build: .
     container_name: dbshackathon_server
@@ -16,7 +17,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgres://admin:admin@db/dbshackathon
+      - DATABASE_URL=postgres://postgres:securepassword@db/dbshackathon
     volumes:
     - .:/usr/src/app
-    command: ["./wait-for-it.sh", "db", "--", "npm", "start"]
+    command: ["npm", "start"]

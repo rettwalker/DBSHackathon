@@ -1,5 +1,5 @@
 const EventEmitter = require('events'),
-    Database = require('../database');
+    Database = require('../database/comments');
 
 const Comments = () => {
     const commentEmitter = Object.assign({}, EventEmitter.prototype);
