@@ -18,4 +18,5 @@ services:
     ports:
       - "3000:3000"
 ```
+
 place this into a `docker-compose.yml` file and run docker-compose up and you can run the server and db
