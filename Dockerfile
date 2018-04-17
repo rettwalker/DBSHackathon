@@ -1,8 +1,5 @@
 FROM node:carbon
 
-RUN echo "Y" | apt-get update
-RUN echo "Y" | apt-get install postgresql-9.4
-
 # Create app directory
 WORKDIR /usr/src/app
 

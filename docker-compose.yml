@@ -1,14 +1,12 @@
 version: '3'
 services:
   db:
-    image: "postgres"
+    image: "rettwalker/dbshackathon_db"
     container_name: dbshackathon_db
     environment:
       - POSTGRES_PASSWORD=securepassword
       - POSTGRES_USER=postgres
       - POSTGRES_DB=dbshackathon
-    volumes:
-      - ./docker/postgres:/docker-entrypoint-initdb.d/
   server:
     build: .
     container_name: dbshackathon_server
