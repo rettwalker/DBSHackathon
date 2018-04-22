@@ -22,7 +22,8 @@
     "compression": "^1.7.2",
     "express": "^4.16.2",
     "gulp": "^3.9.1",
-    "pg": "^7.4.1"
+    "pg": "^7.4.1",
+    "socket.io": "^2.1.0"
   },
   "bugs": {
     "url": "https://github.com/rettwalker/DBSHackathon/issues"

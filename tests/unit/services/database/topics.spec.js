@@ -3,20 +3,23 @@ const Database = require('../../../../services/database/topics'),
     chai = require('chai'),
     sinon = require('sinon'),
     GetClient = require('../../../../services/database/getClient'),
+    Sockets = require('../../../../services/sockets'),
     expect = chai.expect;
 
 describe('Handles DB Requests', () => {
-    let emitter, req, res, MockClient, GetClientStub;
+    let emitter, req, res, MockClient, GetClientStub, SocketEmitterStub;
     beforeEach(() => {
         MockClient = Object.assign({}, { query: sinon.stub() }, EventEmitter.prototype);
         GetClientStub = sinon.stub(GetClient, 'getConnection').resolves(MockClient);
 
+        SocketEmitterStub = sinon.stub(Sockets, 'emitNewTopic');
         emitter = Object.assign({}, EventEmitter.prototype);
         emitter.on('done', sinon.stub());
     });
 
     afterEach(() => {
         GetClientStub.restore();
+        SocketEmitterStub.restore();
     });
 
     describe('Look Up Topics', () => {
@@ -119,9 +122,10 @@ describe('Handles DB Requests', () => {
                 rows: [newTopic]
             });
             emitter.on('done', function (createdTopic, res) {
+                expect(SocketEmitterStub.calledWith(createdTopic)).to.be.true;
                 expect(GetClientStub.called).to.be.true;
                 expect(MockClient.query.firstCall.calledWith('SELECT * FROM topics WHERE LOWER(name)=LOWER($1)', [newTopic.name])).to.be.true;
-                expect(MockClient.query.secondCall.calledWith('INSERT INTO topics(name, description) VALUES($1, $2) RETURNING *', [newTopic.name, newTopic.description])).to.be.true;
+                expect(MockClient.query.secondCall.calledWith('INSERT INTO topics(name, description, votes) VALUES($1, $2, 0) RETURNING *', [newTopic.name, newTopic.description])).to.be.true;
                 expect(createdTopic).to.deep.equal(newTopic);
                 done();
             });
@@ -139,7 +143,7 @@ describe('Handles DB Requests', () => {
             emitter.on('error', function (error, res) {
                 expect(GetClientStub.called).to.be.true;
                 expect(MockClient.query.firstCall.calledWith('SELECT * FROM topics WHERE LOWER(name)=LOWER($1)', [newTopic.name])).to.be.true;
-                expect(MockClient.query.secondCall.calledWith('INSERT INTO topics(name, description) VALUES($1, $2) RETURNING *', [newTopic.name, newTopic.description])).to.be.true;
+                expect(MockClient.query.secondCall.calledWith('INSERT INTO topics(name, description, votes) VALUES($1, $2, 0) RETURNING *', [newTopic.name, newTopic.description])).to.be.true;
                 expect(error).to.deep.equal({
                     message: 'Error'
                 });
