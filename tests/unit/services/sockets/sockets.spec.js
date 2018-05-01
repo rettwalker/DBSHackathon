@@ -6,17 +6,24 @@ const Sockets = require('../../../../services/sockets'),
     expect = chai.expect;
 
 describe('Abstracted for the sockets', () => {
+    let MockSocket, DatabaseMock;
+    beforeEach(() => {
+        MockSocket = Object.assign({}, EventEmitter.prototype);
+
+        DatabaseMock = sinon.stub(Database, 'on');
+
+    });
+
+    afterEach(() => {
+        DatabaseMock.restore();
+    });
+
     it('should create the socket', () => {
         Sockets.setConnection({});
         expect(Sockets.socketsConnection).to.not.be.null;
     });
 
-    it('should have on connection listener', () => {
-        Sockets.setConnection({});
-        Sockets.socketsConnection.emit('connection', {});
-    });
-
-    it('should have on connection listener', () => {
+    it('should emit event on new topic', () => {
         Sockets.socketsConnection = Object.assign({}, EventEmitter.prototype);
         let emitStub = sinon.stub(Sockets.socketsConnection, 'emit');
         let topic = {
@@ -26,4 +33,12 @@ describe('Abstracted for the sockets', () => {
         Sockets.emitNewTopic(topic);
         expect(emitStub.calledWith('newTopic', topic)).to.be.true;
     });
+
+    it('should emit event on new when vote occurs', () => {
+        Sockets.socketsConnection = Object.assign({}, EventEmitter.prototype);
+        let emitStub = sinon.stub(Sockets.socketsConnection, 'emit');
+        Sockets.emitVoteChange();
+        expect(emitStub.calledWith('votesChanged')).to.be.true;
+    });
+
 });

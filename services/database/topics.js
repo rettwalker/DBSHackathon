@@ -90,6 +90,26 @@ const DataBase = () => {
                 emitter.emit('error', err, res);
             });
     });
+
+    databaseEmitter.on('upVoteTopic', (emitter, updateTopic, res) => {
+        GetClient.getConnection()
+            .then(client => {
+                const sql = 'UPDATE topics SET votes=votes+1 WHERE id=$1 RETURNING *';
+                const values = [updateTopic.id]
+                return client.query(sql, values);
+            })
+            .then(topics => {
+                Sockets.emitVoteChange();
+                emitter.emit('done', topics.rows[0], res);
+                return;
+            })
+            .catch(err => {
+                emitter.emit('error', err, res);
+                return;
+            });
+    });
+
+
     return databaseEmitter;
 };
 

@@ -86,6 +86,20 @@ describe('Handles Get Topic Requests', () => {
             });
             Topics.emit('getTopic', req, res);
         });
+
+        it('should emit DB event to get a topic and its comments', (done) => {
+            req = {
+                params: {
+                    id: 1
+                }
+            };
+            res = {};
+            DatabaseMock.withArgs('upVoteTopic').callsFake((emitter, response) => {
+                expect(DatabaseMock.calledWith('upVoteTopic', sinon.match.object, { id: req.params.id }, res)).to.be.true;
+                done();
+            });
+            Topics.emit('voteForTopic', req, res);
+        });
     });
 
     describe('Done Handler', () => {

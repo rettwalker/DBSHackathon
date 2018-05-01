@@ -7,12 +7,13 @@ const Database = require('../../../../services/database/topics'),
     expect = chai.expect;
 
 describe('Handles DB Requests', () => {
-    let emitter, req, res, MockClient, GetClientStub, SocketEmitterStub;
+    let emitter, req, res, MockClient, GetClientStub, SocketEmitterStub, SocketVoteChangeStub;
     beforeEach(() => {
         MockClient = Object.assign({}, { query: sinon.stub() }, EventEmitter.prototype);
         GetClientStub = sinon.stub(GetClient, 'getConnection').resolves(MockClient);
 
         SocketEmitterStub = sinon.stub(Sockets, 'emitNewTopic');
+        SocketVoteChangeStub = sinon.stub(Sockets, 'emitVoteChange');
         emitter = Object.assign({}, EventEmitter.prototype);
         emitter.on('done', sinon.stub());
     });
@@ -20,6 +21,7 @@ describe('Handles DB Requests', () => {
     afterEach(() => {
         GetClientStub.restore();
         SocketEmitterStub.restore();
+        SocketVoteChangeStub.restore();
     });
 
     describe('Look Up Topics', () => {
@@ -195,6 +197,36 @@ describe('Handles DB Requests', () => {
                 done();
             });
             Database.emit('updateTopic', emitter, updateTopic, res);
+        });
+    });
+
+    describe('Vote on A Topic', () => {
+        it('should upvote the topic', (done) => {
+            let updateTopic = { id: 1 };
+            let upVotedTopic = { id: 1, name: 'brianc', description: 'A Short Description New', votes: 1 };
+            MockClient.query.resolves({
+                rows: [upVotedTopic]
+            });
+            emitter.on('done', function (updatedTopic, res) {
+                expect(SocketVoteChangeStub.called).to.be.true;
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('UPDATE topics SET votes=votes+1 WHERE id=$1 RETURNING *', [updateTopic.id])).to.be.true;
+                expect(updatedTopic).to.deep.equal(upVotedTopic);
+                done();
+            });
+            Database.emit('upVoteTopic', emitter, updateTopic, res);
+        });
+
+        it('should fail to upvote the topic', (done) => {
+            let updateTopic = { id: 1 };
+            MockClient.query.rejects({ message: 'Error' });
+            emitter.on('error', function (updatedTopic, res) {
+                expect(GetClientStub.called).to.be.true;
+                expect(MockClient.query.calledWith('UPDATE topics SET votes=votes+1 WHERE id=$1 RETURNING *', [updateTopic.id])).to.be.true;
+                expect(updatedTopic).to.deep.equal({ message: 'Error' });
+                done();
+            });
+            Database.emit('upVoteTopic', emitter, updateTopic, res);
         });
     });
 });

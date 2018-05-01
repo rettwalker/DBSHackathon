@@ -29,6 +29,10 @@ const Topics = () => {
         Database.emit('updateTopic', this, newTopic, res);
     });
 
+    topicEmitter.on('voteForTopic', function (req, res) {
+        Database.emit('upVoteTopic', this, { id: req.params.id }, res);
+    });
+
     topicEmitter.on('done', function (topics, res) {
         res.status(200);
         res.json(topics);

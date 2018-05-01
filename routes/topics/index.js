@@ -18,4 +18,9 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
     Topics.emit('updateTopic', req, res);
 });
+
+router.get('/:id/vote', (req, res) => {
+    Topics.emit('voteForTopic', req, res);
+});
+
 module.exports = router;
