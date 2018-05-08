@@ -10,9 +10,14 @@ const express = require('express'),
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(compression());
+'Access-Control-Allow-Origin: *'
 
 
-app.use('/api', routes);
+
+app.use('/api', (req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    next();
+}, routes);
 
 Sockets.setConnection(server);
 
